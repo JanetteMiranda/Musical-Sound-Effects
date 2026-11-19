@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#082b46"><meta name="description" content="Offline script-linked sound director board">
+<title>Play Sound Director</title>
+<style>
+:root{font-family:Arial,Helvetica,sans-serif;color:#10213d;background:#eef4fa;font-synthesis:none}*{box-sizing:border-box}body{margin:0}.top{background:linear-gradient(110deg,#082b46,#123d5b);color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.top h1{font-size:22px;margin:0 0 5px}.sub{font-size:13px;opacity:.9}.status{border:1px solid #91b4ca;border-radius:24px;padding:9px 13px;font-size:12px}.layout{max-width:1500px;margin:18px auto;padding:0 16px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(360px,.8fr);gap:16px}.panel{background:#fff;border:1px solid #d8e4f0;border-radius:16px;padding:17px;box-shadow:0 3px 12px #163c5b0c;min-width:0}.panel h2{font-size:19px;margin:0 0 14px}.nav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:12px 14px;font-weight:700}.prev,.next,.secondary{background:#e5edf5;color:#10213d}.next,.play{background:#08718d;color:white}.prev:disabled,.next:disabled{opacity:.4;cursor:not-allowed}.progress{font-size:12px;color:#60738a;margin:0 0 12px}.script-list{display:flex;flex-direction:column;gap:9px;max-height:72vh;overflow:auto;padding-right:2px}.script-line{border:1px solid #d8e4f0;border-radius:13px;padding:13px 15px;background:#fff;scroll-margin:8px}.script-line.active{border:2px solid #08718d;background:#f2fbfe}.speaker{font-size:12px;font-weight:800;letter-spacing:.04em;margin-bottom:6px;color:#152744}.line-text{font-size:16px;line-height:1.5;color:#101820}.cue{color:#d10e0e;font-weight:800;white-space:nowrap}.inlineplay{margin-top:8px;padding:8px 12px;font-size:13px;background:#08718d;color:#fff}.current{background:#f2f6fa;border-radius:12px;padding:14px;min-height:116px;margin-bottom:12px}.eyebrow{font-size:11px;color:#53677e;font-weight:700;margin-bottom:6px}.current-speaker{font-weight:800;margin-bottom:5px}.current-text{line-height:1.45}.current-cues{font-size:12px;color:#08718d;margin-top:7px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}.controls button{padding:13px 8px}.stop{grid-column:1/-1;background:#bf1010;color:#fff}.keys-title{margin:18px 0 9px;font-weight:800;color:#075b77}.keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.key{background:#edf3f8;border:1px solid #d5e1ec;text-align:left;padding:10px;min-height:100px;color:#075b77}.key strong{display:block;font-size:17px;margin-bottom:6px}.key b{display:block;font-size:15px;margin-bottom:5px}.key small{display:block;color:#1c2b43;line-height:1.25;font-size:11px}.key:active,.key.playing{background:#d4f2f8;border-color:#07809b;outline:2px solid #07809b}.hint{font-size:11px;color:#60738a;line-height:1.5;margin-top:12px}.pill{display:inline-block;background:#e8f2f8;border-radius:15px;padding:4px 8px;font-size:11px;margin-left:4px}@media(max-width:850px){.layout{grid-template-columns:1fr}.script-list{max-height:unset}.keys{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:430px){.keys{grid-template-columns:repeat(2,minmax(0,1fr))}.top{padding:15px}.panel{padding:13px}.layout{padding:0 9px;margin:10px auto}}
+</style></head><body>
+<header class="top"><div><h1>🎭 Play Sound Director</h1><div class="sub">Script-linked cues · Local offline playback · Keyboard shortcuts A–P and S</div></div><div><div class="status" id="status">Loading soundboard…</div><div id="cacheProgress" style="display:none;margin-top:7px;width:220px;height:5px;border-radius:9px;background:#ffffff40;overflow:hidden"><div id="cacheBar" style="height:100%;width:0;background:#65d7e8;transition:width .2s"></div></div></div></header>
+<main class="layout">
+<section class="panel"><h2>Performance Script</h2><div class="nav"><button class="prev" id="prev">← Previous line</button><button class="next" id="next">Next line →</button></div><div class="progress" id="progress"></div><div class="script-list" id="script"></div></section>
+<aside class="panel"><h2>Sound Control</h2><div class="current"><div class="eyebrow">CURRENT LINE</div><div class="current-speaker" id="currentSpeaker">—</div><div class="current-text" id="currentText">Choose a line from the performance script.</div><div class="current-cues" id="currentCues"></div></div>
+<div class="controls"><button class="play" id="playCurrent">▶ Play current cue</button><button class="secondary" id="replay">↻ Replay</button><button class="stop" id="stop">■ STOP ALL (S)</button></div>
+<div class="keys-title">All 16 cues · A–P</div><div class="keys" id="keys"></div><div class="hint">Keyboard: press <b>A–P</b> to play the corresponding cue. Press <b>S</b> to stop all audio. Use ← / → to move between script lines. Audio is stored locally after the first online visit.</div>
+</aside></main>
+<script>
+const cues=[
+['Sound 1','Mr. Lin welcomes the class'],['Sound 2','Students sing “Where are the colors?”'],['Sound 3','Catty says the brush feels like a magic wand'],['Sound 4','Duke announces “I am the Ink Monster!”'],['Sound 5','Mr. Lin introduces the Three Secrets'],['Sound 6','Mr. Lin announces Secret Number One'],['Sound 7','Breathing exercise begins'],['Sound 8','Mr. Lin introduces Secret Number Two'],['Sound 9','Duke shows off: King of all'],['Sound 10','Mr. Lin introduces the Dragon Claw'],['Sound 11','Students gasp: Dragon Claw!'],['Sound 12','Mr. Lin teaches the Yong character and strokes'],['Sound 13','Catty says it is like a dance'],['Sound 14','Students make a ballerina dance pose'],['Sound 15','Musical number: The Calligraphy Rock'],['Sound 16','Mr. Lin praises the performance']
+];
+const L=(speaker,html,cues=[])=>({speaker,html,cues});
+const script=[
+L('SCENE 1 · THE MESSY BEGINNING','<span class="cue">(KEY A)</span> Welcome to Magic Brush Class, everyone! Today, we’re going to learn the art of Chinese calligraphy!',[1]),
+L('STUDENTS','(Wave happily.) Good morning, Mr. Lin!'),L('BEN','(Sighs.) Oh no... writing? But my handwriting is already messy!'),
+L('AMY','(Yawns.)<br>♪ And it looks so BORING!<br>Just BLACK AND WHITE!<br>Where are the COLORS?<br>Where’s the PINK I LIKE?! ♪'),
+L('STUDENTS','♪ YEAH! <span class="cue">(KEY B)</span> WHERE ARE THE COLORS? (Clap-clap-tap)<br>WHERE ARE THE COLORS? (Clap-clap-tap)<br>BLACK AND WHITE?! (Clap-clap-tap)<br>THAT CAN’T BE RIGHT! ♪ (Clap-clap-tap)',[2]),
+L('CATTY','(Holds the brush like a magic wand.) SHHHHH! Be quiet, guys. Look at this brush. It feels like a <span class="cue">(KEY C)</span> magic wand!',[3]),
+L('DUKE','(Pretends to paint Ben’s face.) Watch out, Ben! I am the Ink Monster! <span class="cue">(KEY D)</span>',[4]),
+L('STUDENTS','(Laugh.) Run, Ben! Run!'),L('BEN','(Dodges.) Hey! Stop it!'),
+L('MR. LIN','(Claps three times.) Class, class, look at me! Calligraphy is not just writing. It is a superpower. But first, we must master the <span class="cue">(KEY E)</span> Three Secrets.',[5]),
+L('SCENE 2 · THE THREE SECRETS',''),L('STUDENTS','Ooh, secrets!'),L('CATTY','(Raises hand.) What is the first secret, Mr. Lin?'),
+L('MR. LIN','(Voice check) <span class="cue">(KEY F)</span> Secret Number One: Calm your mind. Calligraphy starts. Leave noise behind. Everyone, now. <span class="cue">(KEY G)</span> Close your eyes. In 1, 2, 3, breathe with me.<br>(Inhale… exhale)',[6,7]),
+L('STUDENTS','Inhale... Exhale...'),L('BEN','(Opens eyes and looks around.) (No lines)'),L('CATTY','(Elbows Ben.) (No lines)'),
+L('MR. LIN','Good. <span class="cue">(KEY H)</span> Secret Number Two: Sit like a king or queen. Everybody say “Yes, Mr. Lin.”',[8]),
+L('STUDENTS','(Sits up very straight, exaggeratedly.) Yes, Mr. Lin!'),L('MR. LIN','Back straight.'),L('STUDENTS','BACK STRAIGHT.'),L('MR. LIN','Feet flat.'),L('STUDENTS','FEET FLAT.'),L('MR. LIN','Sit tall.'),L('STUDENTS','SIT TALL.'),
+L('DUKE','(Shows off.) LIKE THIS! Look at me! I’m the King of all! <span class="cue">(KEY I)</span>',[9]),L('STUDENTS','THE KING OF ALL!'),
+L('MR. LIN','Hmmm. Perfect. Now… Secret Number Three: The… <span class="cue">(KEY J)</span> Dragon Claw! <span class="cue">(KEY K)</span>',[10,11]),L('STUDENTS','(Gasp.) DRAGON CLAW!'),L('MR. LIN','Please take out your brush.'),
+L('SCENE 3 · THE MAGICAL 8 STROKES',''),
+L('MR. LIN','(Points to the blackboard.) <span class="cue">(KEY L)</span> Now, look at this character. It is “Yong” (永). It means “Forever.” It has the eight magical strokes of calligraphy. Let’s practice the first three together!',[12]),
+L('CATTY','(Looks at 永 in surprise.) Wow, it’s like a dance! <span class="cue">(KEY M)</span>',[13]),
+L('MR. LIN','(Smiles and nods.) <span class="cue">(KEY L)</span> It is a dance! Let’s do the first stroke. Dian! The Dot. It’s like a raindrop. Drop!',[12]),L('STUDENTS','(Make a dot in the air with the brush.) Drop!'),
+L('MR. LIN','(Draws a horizontal line.) <span class="cue">(KEY L)</span> Second stroke—Heng! The Horizontal Line. Start...Slide...Stop!',[12]),L('STUDENTS','(Draw a horizontal line.) Start...Slide...Stop!'),L('BEN','(Stands up excitedly.) Hey! This is like kung fu!'),
+L('MR. LIN','(Laughs.) <span class="cue">(KEY L)</span> Exactly, Ben! The third stroke is Shu! The Vertical Line. Pull straight down!',[12]),L('STUDENTS','(Pull the brush straight down.) Pull...Straight...Down!'),L('DUKE','(Strikes a kung fu pose.) Yee-hah!'),L('STUDENTS','(Clap and cheer.) Wow! Great job, Duke!'),L('MR. LIN','(Pats Duke on the shoulder.) Excellent, Duke! You see? Calligraphy is not just writing. It is kung fu.'),L('STUDENTS','HAH! (Kung fu pose)'),L('MR. LIN','It is a dance.'),L('STUDENTS','(Dance pose like a ballerina.) <span class="cue">(KEY N)</span>',[14]),L('MR. LIN','It is…… Music! (Students freeze)'),
+L('MUSICAL NUMBER · THE CALLIGRAPHY ROCK','<span class="cue">(KEY O)</span> Musical number begins.',[15]),
+L('EVERYONE','Hold it high! Hold it low!<br>Watch the magic ink flow!<br>One, two, three, let’s go!<br>Calligraphy rock! Calligra-PHYYY!'),
+L('ZIV, RYAN, ADRIAN, CHRIS','Secret One, calm your mind.<br>Leave the noisy world behind.<br>Inhale deep. Exhale slow.<br>Now you’re ready for the show!'),
+L('ANDY, BERNIE','Secret Two, sit up straight.<br>Like a king at the gate!<br>Secret Three, Dragon Claw.<br>Best brush posture you ever saw!'),
+L('GIRLS · JULIANNE, VIVI, JESSIE','No pink, no blue, but it’s okay!<br>Black and white will save the day!<br>A drop of rain! A rolling tide!<br>Start, stop, and slide!'),
+L('EVERYONE','Hold it high! Hold it low!<br>Watch the magic ink flow!<br>One, two, three, let’s go!<br>Calligraphy rock! Calligra-PHYYY!'),
+L('MAX, ALDEN, OTIS, ALBERT, IAN','Dian! Heng! Shu!<br>We know what to do!<br>Express yourself, be proud and free!<br>That’s the power of Calligra-PHYYY!'),
+L('EVERYONE','Hold it high! Hold it low!<br>Watch the magic ink flow!<br>One, two, three, let’s go!<br>Calligraphy rock! Calligra-PHYYY!'),
+L('SCENE 4 & 5 · THE MASTERPIECES & ENDING','Bow'),
+L('MR. LIN','<span class="cue">(KEY P)</span> Wow! What a performance. You see, everyone? Calligraphy is not boring. It is about patience, power, and beauty!',[16]),
+L('CATTY','It’s peaceful.'),L('BEN','It’s strong!'),L('AMY','It’s beautiful!'),L('DUKE','It’s fun!'),
+L('STUDENTS','It’s creative!<br>It’s amazing!<br>It’s relaxing!<br>It’s exciting!<br>It’s wonderful!'),L('EVERYONE','We love calligraphy!'),L('MR. LIN','Thank you, everyone!'),L('EVERYONE','Thank you!')
+];
+const audio={};let current=0,activeAudio=null,activeKey=null,sequenceToken=0;
+const letter=i=>String.fromCharCode(65+i);
+function play(i){playSequence([i])}
+function playSequence(indices){stop();const token=++sequenceToken;let pos=0;const next=()=>{if(token!==sequenceToken||pos>=indices.length){activeAudio=null;activeKey=null;return}const i=indices[pos++],a=new Audio(`audio/sound-${String(i+1).padStart(2,'0')}.mp3`),k=document.querySelector(`[data-key="${i}"]`);activeAudio=a;activeKey=i;if(k)k.classList.add('playing');a.onended=()=>{if(k)k.classList.remove('playing');if(token===sequenceToken)next()};a.onerror=()=>{if(k)k.classList.remove('playing');if(token===sequenceToken)next()};a.play().catch(()=>{if(k)k.classList.remove('playing');if(token===sequenceToken)next()})};next()}
+function stop(){sequenceToken++;if(activeAudio){activeAudio.pause();activeAudio.currentTime=0}activeAudio=null;activeKey=null;document.querySelectorAll('.key.playing').forEach(k=>k.classList.remove('playing'))}
+function render(){const root=document.getElementById('script');root.innerHTML='';script.forEach((x,i)=>{const d=document.createElement('article');d.className='script-line'+(i===current?' active':'');d.dataset.index=i;d.innerHTML=`<div class="speaker">${x.speaker}</div><div class="line-text">${x.html}</div>`;if(x.cues.length){const individualCues=x.cues.filter(n=>[6,7,10,11].includes(n));const isDedicatedCueLine=x.cues.some(n=>[6,7,10,11].includes(n));if(!isDedicatedCueLine){const b=document.createElement('button');b.className='inlineplay';b.textContent='▶ Play this sound';b.onclick=()=>playSequence(x.cues.map(n=>n-1));d.appendChild(b)}individualCues.forEach(n=>{const single=document.createElement('button');single.className='inlineplay';single.style.marginLeft='7px';single.textContent=`▶ Play this sound (Key ${letter(n-1)})`;single.onclick=()=>play(n-1);d.appendChild(single)})}d.onclick=e=>{if(e.target.tagName!=='BUTTON'){current=i;update()}};root.appendChild(d)});updateText()}
+function updateText(){const x=script[current];document.getElementById('currentSpeaker').textContent=x.speaker;document.getElementById('currentText').innerHTML=x.html||'—';document.getElementById('currentCues').textContent=x.cues.length?'Cue(s): '+x.cues.map(n=>'Key '+letter(n-1)).join(', '):'No sound cue on this line';document.getElementById('progress').textContent=`Line ${current+1} of ${script.length}`;document.getElementById('prev').disabled=current===0;document.getElementById('next').disabled=current===script.length-1;document.querySelectorAll('.script-line').forEach((el,i)=>el.classList.toggle('active',i===current));const el=document.querySelector(`.script-line[data-index="${current}"]`);if(el)el.scrollIntoView({block:'nearest',behavior:'smooth'})}
+function update(){updateText()}
+function playCurrent(){const x=script[current];if(x.cues.length)playSequence(x.cues.map(n=>n-1))}
+document.getElementById('prev').onclick=()=>{if(current>0){current--;update()}};document.getElementById('next').onclick=()=>{if(current<script.length-1){current++;update()}};document.getElementById('stop').onclick=stop;document.getElementById('playCurrent').onclick=playCurrent;document.getElementById('replay').onclick=()=>{if(activeKey!==null)play(activeKey);else playCurrent()};
+const keys=document.getElementById('keys');cues.forEach((c,i)=>{const b=document.createElement('button');b.className='key';b.dataset.key=i;b.innerHTML=`<strong>${letter(i)} ·</strong><small>${c[1]}</small>`;b.onclick=()=>play(i);keys.appendChild(b)});
+document.addEventListener('keydown',e=>{
+  // Never treat Escape, modifier keys, or modified shortcuts (e.g. Command+C) as sound triggers.
+  if(e.code==='Escape'||e.key==='Escape'||e.metaKey||e.ctrlKey||e.altKey||e.shiftKey)return;
+  if(e.code==='ArrowUp'||e.code==='ArrowDown'){e.preventDefault();e.stopImmediatePropagation();return}
+  if(e.target.matches('input,textarea,select,[contenteditable="true"]'))return;
+  if(e.code==='ArrowLeft'){e.preventDefault();if(current>0){current--;update()}return}
+  if(e.code==='ArrowRight'){e.preventDefault();if(current<script.length-1){current++;update()}return}
+  if(e.target.matches('button'))return;
+  // Use physical letter-key codes so non-letter keys can never accidentally trigger a cue.
+  if(/^Key[A-P]$/.test(e.code)){play(e.code.charCodeAt(3)-65);return}
+  if(e.code==='KeyS')stop();
+},true);
+document.addEventListener('keyup',e=>{if(e.code==='ArrowUp'||e.code==='ArrowDown'){e.preventDefault();e.stopImmediatePropagation()}},true);
+render();
+const statusEl=document.getElementById('status');
+const cacheProgress=document.getElementById('cacheProgress');
+const cacheBar=document.getElementById('cacheBar');
+statusEl.textContent='USB offline mode · all 16 sounds included';
+if(cacheProgress) cacheProgress.style.display='none';
+</script></body></html>
