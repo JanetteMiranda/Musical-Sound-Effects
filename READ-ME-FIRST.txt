@@ -1,0 +1,14 @@
+SOUND DIRECTOR — PORTABLE USB VERSION
+
+1. Extract this ZIP (do not open index.html from inside the ZIP).
+2. Copy the entire extracted folder to a USB flash drive.
+3. On Windows or Mac, open the folder and double-click index.html.
+4. Use a current browser such as Chrome, Edge, Firefox or Safari.
+5. Click a sound button or press A through P; S stops audio.
+6. The script edition also supports Left/Right arrows for line navigation.
+
+NO INTERNET, NETLIFY, INSTALLATION OR OFFLINE CACHING REQUIRED.
+Keep the audio folder next to index.html. Do not rename audio files.
+If your browser restricts local audio, try Chrome or Edge.
+
+Note: Browser audio playback may require an initial click.
